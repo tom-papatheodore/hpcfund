@@ -263,6 +263,10 @@ It is easiest to run these steps from a JupyterLab environment (as outlined in t
 
 Grab a compute node in an interactive session.
 
+```{note}
+Remember that the login node is NOT meant for compute-intensive tasks like serving LLMs, so please make sure to allocate a compute node to follow along with this section.
+```
+
 ```bash
 salloc -N <number-of-nodes> -t <walltime> -p <partition>
 ```
