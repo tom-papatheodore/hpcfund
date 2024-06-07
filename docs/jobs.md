@@ -255,9 +255,17 @@ Please see the [Python Environment](./software.md#python-environment) section to
 
 ## Large Language Models (Ollama)
 
-Users can experiment with open-weight models running on GPUs with [Ollama](https://ollama.com/). Ollama is a popular framework that enables easy interaction with Large Language Models (LLMs), it uses [llama.cpp](https://github.com/ggerganov/llama.cpp) as a backend.
+Users can experiment with open-weight models running on GPUs with [Ollama](https://ollama.com/). Ollama is a popular framework that enables easy interaction with Large Language Models (LLMs), and it uses [llama.cpp](https://github.com/ggerganov/llama.cpp) as a backend.
 
-It is easiest to run these steps from a JupyterLab environment since that allows you to spawn multiple terminal windows and one can be dedicated to the Ollama server, however you can do all this from an interactive session just as well.
+It is easiest to run these steps from a JupyterLab environment (as outlined in the [Jupyter](#jupyter) section) since that allows you to spawn multiple terminal windows and one can be dedicated to the Ollama server, however you can do all this from an interactive session just as well.
+
+**Step 0:**
+
+Grab a compute node in an interactive session.
+
+```bash
+salloc -N <number-of-nodes> -t <walltime> -p <partition>
+```
 
 **Step 1:**
 
@@ -283,10 +291,10 @@ Otherwise you can run the server in the background with optional logging as foll
 Ollama hosts a list of open-weight models available on their [site](https://ollama.com/library). In this example we will pull in the Llama3 8B model -- one of the most popular open-weight models released by [Meta](https://llama.meta.com/llama3/).
 
 ```bash
-./ollama pull llama3
+OLLAMA_MODELS=<path-to-store-models> ./ollama pull llama3
 ```
 
-By default the models will be saved in your home folder under `~/.ollama`. You can change where they are saved by setting the `OLLAMA_MODELS` env variable. You may want to do this if working with very large LLMs, as you may not want to use your `$HOME` memory for this, and your `$WORK` directory will generally have more memory available.
+By default the models will be saved in your `$HOME` directory under `~/.ollama`, but these directories only have 25GB of storage and can fill up quickly, so the `OLLAMA_MODELS` env variable should be used to store your models somewhere within your `$WORK` directory. You can change where they are saved by setting the `OLLAMA_MODELS` env variable. You may want to do this if working with very large LLMs, as you may not want to use your `$HOME` memory for this, and your `$WORK` directory will generally have more memory available.
 
 **Step 3:**
 
