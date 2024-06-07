@@ -253,6 +253,87 @@ a new (or open an existing) notebook and access the GPUs on the compute node:
 Please see the [Python Environment](./software.md#python-environment) section to understand how the base Python environment and `pytorch` and `tensorflow` modules can be customized.
 ```
 
+## Large Language Models (Ollama)
+
+Users can experiment with open-weight models running on GPUs with [Ollama](https://ollama.com/). Ollama is a popular framework that enables easy interaction with Large Language Models (LLMs), it uses [llama.cpp](https://github.com/ggerganov/llama.cpp) as a backend.
+
+It is easiest to run these steps from a JupyterLab environment since that allows you to spawn multiple terminal windows and one can be dedicated to the Ollama server, however you can do all this from an interactive session just as well.
+
+**Step 1:**
+
+Download the Ollama executable and start the server.
+
+```bash
+curl -L https://ollama.com/download/ollama-linux-amd64 --output ollama
+chmod a+x ollama
+```
+
+If you are comfortable creating multiple terminal sessions on the same node, then simply run the serve command.
+```bash
+./ollama serve
+```
+
+Otherwise you can run the server in the background with optional logging as follows:
+```bash
+./ollama serve 2>&1 | tee log &
+```
+
+**Step 2:**
+
+Ollama hosts a list of open-weight models available on their [site](https://ollama.com/library). In this example we will pull in the Llama3 8B model -- one of the most popular open-weight models released by [Meta](https://llama.meta.com/llama3/).
+
+```bash
+./ollama pull llama3
+```
+
+By default the models will be saved in your home folder under `~/.ollama`. You can change where they are saved by setting the `OLLAMA_MODELS` env variable. You may want to do this if working with very large LLMs, as you may not want to use your `$HOME` memory for this, and your `$WORK` directory will generally have more memory available.
+
+**Step 3:**
+
+The Ollama server is OpenAI API compatible and uses port **11434** by default. This means we can send requests, much like outlined in the [OpenAI API reference documentation](https://platform.openai.com/docs/api-reference/making-requests) using curl.
+
+```bash
+curl http://localhost:11434/v1/chat/completions -H "Content-Type: application/json" \
+        -d '{
+        "model": "llama3",
+        "messages": [
+            {
+                "role": "system",
+                "content": "You are a helpful assistant."
+            },
+            {
+                "role": "user",
+                "content": "Why did the chicken cross the road?"
+            }
+        ]
+    }'
+{"id":"chatcmpl-318","object":"chat.completion","created":1717762800,"model":"llama3","system_fingerprint":"fp_ollama","choices":[{"index":0,"message":{"role":"assistant","content":"The classic question!\n\nAccording to the most popular answer, the chicken crossed the road to get to the other side! But let's be honest, there are many creative and humorous responses to this question too.\n\nDo you have a favorite reason why the chicken might have crossed the road?"},"finish_reason":"stop"}],"usage":{"prompt_tokens":28,"completion_tokens":57,"total_tokens":85}}
+
+```
+
+Similarly, in Python, one can use the OpenAI python package to interface with the Ollama server.
+
+First install the openai package.
+
+```bash
+pip3 install openai
+```
+
+Use the Python OpenAI client to invoke your locally run Llama3 model.
+
+```python
+from openai import OpenAI
+client = OpenAI(base_url="http://localhost:11434/v1", api_key="none")
+response = client.chat.completions.create(
+    model="llama3",
+    messages=[{"role": "user", "content": "Hello this is a test"}],
+)
+print(response)
+```
+```
+ChatCompletion(id='chatcmpl-400', choices=[Choice(finish_reason='stop', index=0, logprobs=None, message=ChatCompletionMessage(content="Hello! This is indeed a test. I'm happy to be a part of it. How can I help you with your test?", role='assistant', function_call=None, tool_calls=None))], created=1717763172, model='llama3', object='chat.completion', system_fingerprint='fp_ollama', usage=CompletionUsage(completion_tokens=28, prompt_tokens=13, total_tokens=41))
+```
+
 <!---
 ## Job dependencies (TODO)
 -->
