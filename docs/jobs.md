@@ -276,14 +276,17 @@ curl -L https://ollama.com/download/ollama-linux-amd64 --output ollama
 chmod a+x ollama
 ```
 
-If you are comfortable creating multiple terminal sessions on the same node, then simply run the serve command.
+If you are comfortable creating multiple terminal sessions on the compute same node, then simply run the serve command and open up a new terminal session on the same node to interact with the server.
 ```bash
-./ollama serve
+OLLAMA_MODELS=<path-to-store-models> ./ollama serve
 ```
 
 Otherwise you can run the server in the background with optional logging as follows:
 ```bash
-./ollama serve 2>&1 | tee log &
+OLLAMA_MODELS=<path-to-store-models> ./ollama serve 2>&1 | tee log > /dev/null &
+```
+```{note}
+By default, the models downloaded in Step 2 below will be saved in `~/.ollama`. However, your `$HOME` directory only has a storage capacity of 25GB and so can quickly fill up with larger models. Therefore, we recommend using the `OLLAMA_MODELS` evironment variable to change the directory where the models are saved to a location within your `$WORK` directory, which has a much larger capacity.
 ```
 
 **Step 2:**
@@ -291,10 +294,10 @@ Otherwise you can run the server in the background with optional logging as foll
 Ollama hosts a list of open-weight models available on their [site](https://ollama.com/library). In this example we will pull in the Llama3 8B model -- one of the most popular open-weight models released by [Meta](https://llama.meta.com/llama3/).
 
 ```bash
-OLLAMA_MODELS=<path-to-store-models> ./ollama pull llama3
+./ollama pull llama3
 ```
 
-By default the models will be saved in your `$HOME` directory under `~/.ollama`, but these directories only have 25GB of storage and can fill up quickly, so the `OLLAMA_MODELS` env variable should be used to store your models somewhere within your `$WORK` directory. You can change where they are saved by setting the `OLLAMA_MODELS` env variable. You may want to do this if working with very large LLMs, as you may not want to use your `$HOME` memory for this, and your `$WORK` directory will generally have more memory available.
+As described in Step 1, these models will be saved in the directory specified by using the `OLLAMA_MODELS` environment variable.
 
 **Step 3:**
 
@@ -319,15 +322,14 @@ curl http://localhost:11434/v1/chat/completions -H "Content-Type: application/js
 
 ```
 
-Similarly, in Python, one can use the OpenAI python package to interface with the Ollama server.
+Similarly, in Python, one can use the OpenAI Python package to interface with the Ollama server. To do so, you will first need to install the `openai` package in your user install directory or within a Python virtual environment.
 
-First install the openai package.
 
 ```bash
 pip3 install openai
 ```
 
-Use the Python OpenAI client to invoke your locally run Llama3 model.
+Now you can use the Python OpenAI client to invoke your locally run Llama3 model.
 
 ```python
 from openai import OpenAI
@@ -341,6 +343,28 @@ print(response)
 ```
 ChatCompletion(id='chatcmpl-400', choices=[Choice(finish_reason='stop', index=0, logprobs=None, message=ChatCompletionMessage(content="Hello! This is indeed a test. I'm happy to be a part of it. How can I help you with your test?", role='assistant', function_call=None, tool_calls=None))], created=1717763172, model='llama3', object='chat.completion', system_fingerprint='fp_ollama', usage=CompletionUsage(completion_tokens=28, prompt_tokens=13, total_tokens=41))
 ```
+
+**Step 4:**
+
+Shutting down the Ollama server.
+
+When your Slurm jobs ends (whether due to reaching walltime limit or manually canceling with `scancel <jobid>`), all user processes (including the Ollama server) will be cleaned up before putting the node back into the queue. However, if you need or want to manually shut down the server, you can do so multiple different ways. Here, we'll show only two of these ways.
+
+Recall that for our example we used an `&` to put our Ollama serve process in the background in Step 1 so we could continue using the same terminal to further interact with the server. Therefore, we need to find that background process that is running the server so we can shut it down.
+
+Option 1: `ps` + `kill`
+```bash
+ps -ef | grep "ollama serve"  # Look for the PID associated with this command in the results
+kill -9 <PID>                 # Kill the process 
+```
+
+Option 2: `jobs` + `fg`
+```bash
+jobs                          # This will show your background processes labeled as [1], [2], etc.
+fg <id>                       # Bring the process back to the foreground. E.g., `fg 1`
+                              # Then simply give the Ctrl+C command to stop the process
+```
+
 
 <!---
 ## Job dependencies (TODO)
