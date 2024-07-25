@@ -25,4 +25,4 @@ AMD encourages HPC Fund users to acknowledge AMD's support of your research in
 your presentations, papers, posters, and press releases. A brief statement such
 as the one below is recommended.
 
-  *"This work was supported in part by Advanced Micro Devices, Inc. under the AMD AI & HPC Cluster Program"*
+> *"This work was supported in part by Advanced Micro Devices, Inc. under the AMD AI & HPC Cluster Program"*
